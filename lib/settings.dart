@@ -5,6 +5,7 @@
 //------------------------------------------------------------------------------
 
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 //------------------------------------------------------------------------------
 
@@ -19,7 +20,7 @@ class Settings
   List<String> names;
   List<Color> colors;
 
-  Settings(String name, int x, int y)
+  Settings.temp(String name, int x, int y)
   {
     this.name = name;
     this.x = x;
@@ -35,6 +36,50 @@ class Settings
       names[i] = "";
       colors[i] = Colors.grey;
     }
+  }
+
+  Settings(String json)
+  {
+    Map<String, dynamic> map = jsonDecode(json);
+
+    name = map['name'];
+    x = map['x'];
+    y = map['y'];
+
+    samples = List.from(map['samples']);
+    names = List.from(map['names']);
+
+    colors = []..length = x * y;
+
+    List<int> colorValues = List.from(map['colors']);
+
+    for (int i = 0 ; i < colorValues.length ; i++)
+      colors[i] = Color(colorValues[i]);
+  }
+
+  List<dynamic> _encodeColors()
+  {
+    List<int> list = [];
+
+    for (Color color in colors)
+      list.add(color.value);
+
+    return List<dynamic>.from(list.map((x) => x));
+  }
+
+  Map<String, dynamic> toJson() =>
+  {
+    'name': name,
+    'x': x,
+    'y': y,
+    'samples': List<dynamic>.from(samples.map((x) => x)),
+    'names': List<dynamic>.from(names.map((x) => x)),
+    'colors': _encodeColors(),
+  };
+
+  String getJson()
+  {
+    return jsonEncode(this);
   }
 
   void validate()
@@ -60,6 +105,6 @@ class Settings
   }
 }
 
-Settings defaultSettings = new Settings("Open Sampler", 4,4);
+Settings defaultSettings = Settings.temp("Open Sampler", 3,3);
 
 //------------------------------------------------------------------------------

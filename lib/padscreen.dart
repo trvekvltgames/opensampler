@@ -4,8 +4,14 @@
 //    Copyright Cherry Tree Studio 2021
 //------------------------------------------------------------------------------
 
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'load.dart';
 import 'settingsscreen.dart';
 import 'settings.dart';
 
@@ -71,6 +77,49 @@ class _PadScreenState extends State<PadScreen> {
     setState(() {});
   }
 
+  void _goToSave(BuildContext context) async
+  {
+    TextEditingController controller = TextEditingController();
+
+    var ok = await confirm(context, title: Text('Input project name'), content: TextField(controller: controller));
+
+    if (ok)
+    {
+      String name = controller.text;
+      _settings.name = name;
+
+      Directory directory = await getApplicationDocumentsDirectory();
+      String path = directory.path;
+      File newFile = File('$path/$name.json');
+
+      String settingJson = _settings.getJson();
+      newFile.writeAsString(settingJson);
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("last", newFile.absolute.path);
+    }
+  }
+
+  void _goToOpen(BuildContext context) async
+  {
+    Directory directory = await getApplicationDocumentsDirectory();
+    List<File> files = [];
+
+    await for (var file in directory.list(recursive: false, followLinks: false)) {
+      if (file.path.endsWith(".json"))
+        files.add(file);
+    }
+
+    File settingsFile = await Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScreen(files)));
+
+    if (settingsFile != null) {
+      String json = await settingsFile.readAsString();
+      _settings = new Settings(json);
+    }
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context)
   {
@@ -98,9 +147,11 @@ class _PadScreenState extends State<PadScreen> {
                     break;
 
                   case PopupState.SaveProject:
+                    _goToSave(context);
                     break;
 
                   case PopupState.OpenProject:
+                    _goToOpen(context);
                     break;
 
                   case PopupState.Settings:
