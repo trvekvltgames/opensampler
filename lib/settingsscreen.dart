@@ -1,27 +1,38 @@
-//------------------------------------------------------------------------------
+//==============================================================================
 //    settingsscreen.dart
 //    Released under EUPL 1.2
 //    Copyright Cherry Tree Studio 2021
-//------------------------------------------------------------------------------
+//==============================================================================
 
 import 'package:flutter/material.dart';
+import 'main.dart';
 import 'settings.dart';
 
-//------------------------------------------------------------------------------
+//==============================================================================
 
 class SettingsScreen extends StatefulWidget {
 
+  //----------------------------------------------------------------------------
+
   final Settings _settings;
+
+  //----------------------------------------------------------------------------
 
   SettingsScreen(this._settings);
 
+  //----------------------------------------------------------------------------
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState(_settings);
+
+  //----------------------------------------------------------------------------
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+  //----------------------------------------------------------------------------
 
   Settings _settings;
 
@@ -31,9 +42,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int xAmount = 2;
   int yAmount = 3;
 
+  //----------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context)
   {
+    final TextStyle defaultTextStyle = TextStyle(fontSize: 20);
+
     xAmount = _settings.x;
     yAmount = _settings.y;
 
@@ -43,24 +58,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text("Settings"),
       ),
         body: Container(
-            margin: const EdgeInsets.all(10.0),
+            margin: const EdgeInsets.all(20.0),
             child: Center(
               child: Column(mainAxisAlignment: MainAxisAlignment.center,
                   // <Widget> is the type of items in the list.
                   children: <Widget>[
+                    Spacer(),
+                    Row(children: <Widget>[Text("Project Settings:", style: defaultTextStyle), Spacer()]),
                     _buildHorizontalAmountCombo(context),
                     _buildVerticalAmountCombo(context),
-                    _buildFontCombo(context)
+                    Spacer(),
+                    Row(children: <Widget>[Text("Global Settings:", style: defaultTextStyle), Spacer()]),
+                    _buildFontCombo(context),
+                    Spacer(),
                   ]),
             )));
   }
+
+  //----------------------------------------------------------------------------
 
   Row _buildHorizontalAmountCombo(BuildContext context)
   {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Spacer(),
         Text('Horizontal Pads'),
         Spacer(),
         DropdownButton<int>(
@@ -87,17 +108,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           }).toList(),
         ),
-        Spacer()
       ],
     );
   }
+
+  //----------------------------------------------------------------------------
 
   Row _buildVerticalAmountCombo(BuildContext context)
   {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Spacer(),
         Text('Vertical Pads'),
         Spacer(),
         DropdownButton<int>(
@@ -124,24 +145,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           }).toList(),
         ),
-        Spacer()
       ],
     );
   }
 
+  //----------------------------------------------------------------------------
+
   Row _buildFontCombo(BuildContext context)
   {
+    // TODO This might be better if it used an enum.
+
+    String prefFont = preferences.getString(fontSizeKey);
+
+    if (prefFont == null || prefFont.isEmpty)
+      prefFont = "Default";
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Spacer(),
         Text('Font Size'),
         Spacer(),
         DropdownButton<String>(
-          value: fontValue,
+          value: prefFont,
           onChanged: (String newValue) {
             setState(() {
               fontValue = newValue;
+              preferences.setString(fontSizeKey, newValue);
             });
           },
           items: <String>[
@@ -158,11 +187,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           }).toList(),
         ),
-        Spacer()
       ],
     );
   }
 
+//----------------------------------------------------------------------------
+
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================

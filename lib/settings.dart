@@ -1,24 +1,127 @@
-//------------------------------------------------------------------------------
+//==============================================================================
 //    settings.dart
 //    Released under EUPL 1.2
 //    Copyright Cherry Tree Studio 2021
-//------------------------------------------------------------------------------
+//==============================================================================
 
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
+//==============================================================================
+
+enum PlayMode { Normal, Looped, Hold }
+
 //------------------------------------------------------------------------------
 
-class Settings
+String _playModeToString(PlayMode mode)
 {
+  switch (mode)
+  {
+    case PlayMode.Normal:
+      return "Normal";
+
+    case PlayMode.Looped:
+      return "Looped";
+
+    case PlayMode.Hold:
+      return "Hold";
+  }
+
+  return null;
+}
+
+//------------------------------------------------------------------------------
+
+PlayMode _playModeFromString(String string)
+{
+  switch (string)
+  {
+    case "Normal":
+      return PlayMode.Normal;
+
+    case "Looped":
+      return PlayMode.Looped;
+
+    case "Hold":
+      return PlayMode.Hold;
+  }
+
+  return null;
+}
+
+//==============================================================================
+
+class PadSettings {
+
+  //----------------------------------------------------------------------------
+
+  String sample;
+  String caption;
+  Color color;
+  PlayMode mode;
+
+  //----------------------------------------------------------------------------
+
+  PadSettings(int index)
+  {
+    index++;
+
+    sample = "";
+    caption = "$index";
+    color = Colors.black12;
+    mode = PlayMode.Normal;;
+  }
+
+  //----------------------------------------------------------------------------
+
+  PadSettings.copy(PadSettings settings)
+  {
+    this.sample = settings.sample;
+    this.caption = settings.caption;
+    this.color = settings.color;
+    this.mode = settings.mode;
+  }
+
+  //----------------------------------------------------------------------------
+
+  PadSettings.fromJson(Map<String, dynamic> map)
+  {
+    sample = map["sample"];
+    caption = map["caption"];
+
+    int colorVal = map["color"];
+    color = Color(colorVal);
+
+    mode = _playModeFromString(map["mode"]);
+  }
+
+  //----------------------------------------------------------------------------
+
+  Map<String, dynamic> toJson() =>
+  {
+    "sample": sample,
+    "caption": caption,
+    "color": color.value,
+    "mode": _playModeToString(mode),
+  };
+
+  //----------------------------------------------------------------------------
+}
+
+//==============================================================================
+
+class Settings {
+
+  //----------------------------------------------------------------------------
+
   String name;
 
   int x;
   int y;
 
-  List<String> samples;
-  List<String> names;
-  List<Color> colors;
+  List<PadSettings> padSettings;
+
+  //----------------------------------------------------------------------------
 
   Settings.temp(String name, int x, int y)
   {
@@ -26,19 +129,29 @@ class Settings
     this.x = x;
     this.y = y;
 
-    samples = []..length = x * y;
-    names = []..length = x * y;
-    colors = []..length = x * y;
+    padSettings = []..length = x * y;
 
     for (int i = 0 ; i < x * y ; i++)
-    {
-      samples[i] = "";
-      names[i] = "";
-      colors[i] = Colors.grey;
-    }
+      padSettings[i] = PadSettings(i);
   }
 
-  Settings(String json)
+  //----------------------------------------------------------------------------
+
+  Settings.copy(Settings settings)
+  {
+    this.name = settings.name;
+    this.x = settings.x;
+    this.y = settings.y;
+
+    this.padSettings = []..length = x * y;
+
+    for (int i = 0 ; i < x * y ; i++)
+      this.padSettings[i] = PadSettings.copy(settings.padSettings[i]);
+  }
+
+  //----------------------------------------------------------------------------
+
+  Settings.fromJson(String json)
   {
     Map<String, dynamic> map = jsonDecode(json);
 
@@ -46,65 +159,52 @@ class Settings
     x = map['x'];
     y = map['y'];
 
-    samples = List.from(map['samples']);
-    names = List.from(map['names']);
+    List<Map<String, dynamic>> padMap = List.from(map['padSettings']);
 
-    colors = []..length = x * y;
+    padSettings = []..length = x * y;
 
-    List<int> colorValues = List.from(map['colors']);
-
-    for (int i = 0 ; i < colorValues.length ; i++)
-      colors[i] = Color(colorValues[i]);
+    for (int i = 0 ; i < x * y ; i++)
+      padSettings[i] = PadSettings.fromJson(padMap[i]);
   }
 
-  List<dynamic> _encodeColors()
-  {
-    List<int> list = [];
-
-    for (Color color in colors)
-      list.add(color.value);
-
-    return List<dynamic>.from(list.map((x) => x));
-  }
+  //----------------------------------------------------------------------------
 
   Map<String, dynamic> toJson() =>
   {
     'name': name,
     'x': x,
     'y': y,
-    'samples': List<dynamic>.from(samples.map((x) => x)),
-    'names': List<dynamic>.from(names.map((x) => x)),
-    'colors': _encodeColors(),
+    'padSettings': List<dynamic>.from(padSettings.map((x) => x)),
   };
+
+  //----------------------------------------------------------------------------
 
   String getJson()
   {
     return jsonEncode(this);
   }
 
+  //----------------------------------------------------------------------------
+
   void validate()
   {
-    if (x * y > samples.length)
+    if (x * y > padSettings.length)
     {
-      for (int i = samples.length ; i < x * y ; i++)
-      {
-        samples.add("");
-        names.add("");
-        colors.add(Colors.grey);
-      }
+      for (int i = padSettings.length ; i < x * y ; i++)
+        padSettings.add(PadSettings(i));
     }
-    else if (x * y < samples.length)
+    else if (x * y < padSettings.length)
     {
-      for (int i = samples.length - 1; i >= x * y ; i--)
-      {
-        samples.removeAt(i);
-        names.removeAt(i);
-        colors.removeAt(i);
-      }
+      for (int i = padSettings.length - 1; i >= x * y ; i--)
+        padSettings.removeAt(i);
     }
   }
+
+  //----------------------------------------------------------------------------
 }
+
+//==============================================================================
 
 Settings defaultSettings = Settings.temp("Open Sampler", 3,3);
 
-//------------------------------------------------------------------------------
+//==============================================================================

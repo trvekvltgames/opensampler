@@ -1,23 +1,30 @@
-//------------------------------------------------------------------------------
+//==============================================================================
 //    padscreen.dart
 //    Released under EUPL 1.2
 //    Copyright Cherry Tree Studio 2021
-//------------------------------------------------------------------------------
+//==============================================================================
 
 import 'dart:io';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-//------------------------------------------------------------------------------
+import 'main.dart';
+
+//==============================================================================
 
 class LoadScreen extends StatelessWidget {
 
-  LoadScreen(this.fileList);
+  //----------------------------------------------------------------------------
 
   final List<File> fileList;
+
+  //----------------------------------------------------------------------------
+
+  LoadScreen(this.fileList);
+
+  //----------------------------------------------------------------------------
 
   void _onChoose(BuildContext context, String name, File file) async
   {
@@ -25,12 +32,13 @@ class LoadScreen extends StatelessWidget {
 
     if (ok)
     {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString("last", file.absolute.path);
+      preferences.setString(lastFileKey, file.absolute.path);
 
       Navigator.pop(context, file);
     }
   }
+
+  //----------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context)
@@ -51,7 +59,11 @@ class LoadScreen extends StatelessWidget {
         body: Container(
             margin: const EdgeInsets.all(10.0),
             child: Center(
-              child: Column(mainAxisAlignment: MainAxisAlignment.start, children: widgets),
+              child: ListView(children: widgets),
             )));
     }
+
+  //----------------------------------------------------------------------------
 }
+
+//==============================================================================
