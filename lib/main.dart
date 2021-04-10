@@ -5,6 +5,7 @@
 //==============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:io';
@@ -16,6 +17,8 @@ import 'settings.dart';
 
 // Global preferences object.
 SharedPreferences preferences;
+
+Directory documentDirectory;
 
 // Key used in preferences to store/retrieve path of the last used project.
 const String lastFileKey = "lastProject";
@@ -31,6 +34,8 @@ Future<void> main() async
   WidgetsFlutterBinding.ensureInitialized();
 
   preferences = await SharedPreferences.getInstance();
+  documentDirectory = await getApplicationDocumentsDirectory();
+
   var settings = await loadSettings();
 
   runApp(MaterialApp(
@@ -52,19 +57,22 @@ Future<Settings> loadSettings() async {
 
   String last = preferences.getString(lastFileKey);
 
-  if (last != null && last.isNotEmpty) {
-    File settingsFile = File(last);
+  if (last == null ||  last.isEmpty) {
+    String path = documentDirectory.path;
+    last = '$path/temp.json';
+  }
 
-    bool exists = await settingsFile.exists();
+  File settingsFile = File(last);
 
-    if (exists) {
-      try {
-        // Read the file.
-        String json = await settingsFile.readAsString();
-        return new Settings.fromJson(json);
-      } catch (e) {
-        print(e.toString());
-      }
+  bool exists = await settingsFile.exists();
+
+  if (exists) {
+    try {
+      // Read the file.
+      String json = await settingsFile.readAsString();
+      return new Settings.fromJson(settingsFile, json);
+    } catch (e) {
+      print(e.toString());
     }
   }
 

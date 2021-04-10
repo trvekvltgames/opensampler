@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 
 import 'load.dart';
 import 'main.dart';
@@ -65,7 +65,7 @@ class _PadScreenState extends State<PadScreen> {
 
   //----------------------------------------------------------------------------
 
-  void _longPress(int padIdx, PadSettings settings) async
+  void _longPress(BuildContext context, int padIdx, PadSettings settings) async
   {
     int padX = (padIdx / _settings.x).floor();
     int padY = padIdx - (padX * _settings.x);
@@ -79,33 +79,52 @@ class _PadScreenState extends State<PadScreen> {
 
   //----------------------------------------------------------------------------
 
-  List<MaterialButton> _addButtons(int amount)
+  List<MaterialButton> _addButtons(BuildContext context, int amount)
   {
     List<MaterialButton> list = [];
 
-    for (int i = 0; i < amount; i++)
+    double fontSize;
+
+    String prefFont = preferences.getString(fontSizeKey);
+
+    if (prefFont != null && prefFont.isNotEmpty && prefFont != "Default")
+      fontSize = double.parse(prefFont);
+
+    for (int i = 0; i < amount; i++) {
+
+      TextStyle buttonTextStyle;
+
+      if (fontSize != null)
+        buttonTextStyle = TextStyle(color: _settings.padSettings[i].textColor, fontSize: fontSize);
+      else
+        buttonTextStyle = TextStyle(color: _settings.padSettings[i].textColor);
+
       list.add(MaterialButton(
           onPressed: _press,
-          onLongPress: () {_longPress(i, _settings.padSettings[i]); },
+          onLongPress: () {
+            _longPress(context, i, _settings.padSettings[i]);
+          },
           enableFeedback: false,
           color: _settings.padSettings[i].color,
-          child: Text(_settings.padSettings[i].caption)));
+          child: Text(_settings.padSettings[i].caption,
+            style: buttonTextStyle)));
+    }
 
     return list;
   }
 
   //----------------------------------------------------------------------------
 
-  void _goToNew() async
+  void _goToNew(BuildContext context) async
   {
-    // TODO All the changes to the project without saving should be saved to a temp project file.
-    // TODO Save the current project (named or temp) on exit, so that it's always restored to it's last used state on app start.
-    // TODO Save the current project (named, not temp) when loading a new project and loading a saved one. 
-
     var ok = await confirm(context, content: Text('This will close current project and create a blank one. Continue?'));
 
-    if (ok)
+    if (ok) {
       _settings = Settings.copy(defaultSettings);
+      _settings.save();
+
+      preferences.setString(lastFileKey, _settings.file.absolute.path);
+    }
 
     setState(() {});
   }
@@ -134,12 +153,11 @@ class _PadScreenState extends State<PadScreen> {
       String name = controller.text;
       _settings.name = name;
 
-      Directory directory = await getApplicationDocumentsDirectory();
-      String path = directory.path;
+      String path = documentDirectory.path;
       File newFile = File('$path/$name.json');
 
-      String settingJson = _settings.getJson();
-      newFile.writeAsString(settingJson);
+      _settings.file = newFile;
+      _settings.save();
 
       preferences.setString(lastFileKey, newFile.absolute.path);
     }
@@ -149,11 +167,10 @@ class _PadScreenState extends State<PadScreen> {
 
   void _goToOpen(BuildContext context) async
   {
-    Directory directory = await getApplicationDocumentsDirectory();
     List<File> files = [];
 
-    await for (var file in directory.list(recursive: false, followLinks: false)) {
-      if (file.path.endsWith(".json"))
+    await for (var file in documentDirectory.list(recursive: false, followLinks: false)) {
+      if (file.path.endsWith(".json") && basename(file.path) != "temp.json")
         files.add(file);
     }
 
@@ -161,7 +178,7 @@ class _PadScreenState extends State<PadScreen> {
 
     if (settingsFile != null) {
       String json = await settingsFile.readAsString();
-      _settings = new Settings.fromJson(json);
+      _settings = new Settings.fromJson(settingsFile, json);
     }
 
     setState(() {});
@@ -185,6 +202,7 @@ class _PadScreenState extends State<PadScreen> {
     double ratio = padWidth / padHeight;
 
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 100, 100, 100),
       appBar: AppBar(
         title: Text(_settings.name),
         actions: [
@@ -200,7 +218,7 @@ class _PadScreenState extends State<PadScreen> {
                 switch(state)
                 {
                   case PopupState.NewProject:
-                    _goToNew();
+                    _goToNew(context);
                     break;
 
                   case PopupState.SaveProject:
@@ -226,7 +244,7 @@ class _PadScreenState extends State<PadScreen> {
             padding: EdgeInsets.only(left: spacing, right: spacing, top: spacing),
             mainAxisSpacing: spacing,
             crossAxisSpacing: spacing,
-            children: _addButtons(_settings.x * _settings.y)),
+            children: _addButtons(context, _settings.x * _settings.y)),
     ));
   }
 

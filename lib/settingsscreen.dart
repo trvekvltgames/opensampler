@@ -90,6 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             setState(() {
               xAmount = newValue;
               _settings.x = xAmount;
+              _settings.save();
             });
           },
           items: <int>[
@@ -127,6 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             setState(() {
               yAmount = newValue;
               _settings.y = yAmount;
+              _settings.save();
             });
           },
           items: <int>[
@@ -176,9 +178,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           items: <String>[
             'Default',
             '12',
+            '18',
             '24',
             '32',
+            '40',
             '48',
+            '56',
             '64'
           ].map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(

@@ -4,50 +4,12 @@
 //    Copyright Cherry Tree Studio 2021
 //==============================================================================
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
-//==============================================================================
-
-enum PlayMode { Normal, Looped, Hold }
-
-//------------------------------------------------------------------------------
-
-String _playModeToString(PlayMode mode)
-{
-  switch (mode)
-  {
-    case PlayMode.Normal:
-      return "Normal";
-
-    case PlayMode.Looped:
-      return "Looped";
-
-    case PlayMode.Hold:
-      return "Hold";
-  }
-
-  return null;
-}
-
-//------------------------------------------------------------------------------
-
-PlayMode _playModeFromString(String string)
-{
-  switch (string)
-  {
-    case "Normal":
-      return PlayMode.Normal;
-
-    case "Looped":
-      return PlayMode.Looped;
-
-    case "Hold":
-      return PlayMode.Hold;
-  }
-
-  return null;
-}
+import 'main.dart';
 
 //==============================================================================
 
@@ -58,41 +20,66 @@ class PadSettings {
   String sample;
   String caption;
   Color color;
-  PlayMode mode;
+  Color textColor;
+  bool looped;
+
+  Settings _settings;
 
   //----------------------------------------------------------------------------
 
-  PadSettings(int index)
+  PadSettings(Settings settings, int index)
   {
+    _settings = settings;
+
     index++;
 
     sample = "";
     caption = "$index";
-    color = Colors.black12;
-    mode = PlayMode.Normal;;
+
+    color = Colors.grey;
+    color = color.withOpacity(1.0);
+
+    textColor = Colors.black;
+    textColor = textColor.withOpacity(1.0);
+
+    looped = false;
   }
 
   //----------------------------------------------------------------------------
 
   PadSettings.copy(PadSettings settings)
   {
+    this._settings = settings._settings;
+
     this.sample = settings.sample;
     this.caption = settings.caption;
+
     this.color = settings.color;
-    this.mode = settings.mode;
+    this.color = this.color.withOpacity(1.0);
+
+    this.textColor = settings.textColor;
+    this.textColor = this.textColor.withOpacity(1.0);
+
+    this.looped = settings.looped;
   }
 
   //----------------------------------------------------------------------------
 
-  PadSettings.fromJson(Map<String, dynamic> map)
+  PadSettings.fromJson(Settings settings, Map<String, dynamic> map)
   {
+    _settings = settings;
     sample = map["sample"];
     caption = map["caption"];
 
     int colorVal = map["color"];
-    color = Color(colorVal);
+    color = colorVal != null ? Color(colorVal) : Colors.grey;
+    color = color.withOpacity(1.0);
 
-    mode = _playModeFromString(map["mode"]);
+    int textColorVal = map["textColor"];
+    textColor = textColorVal != null ? Color(textColorVal) : Colors.black;
+    textColor = textColor.withOpacity(1.0);
+
+    looped = map["looped"];
   }
 
   //----------------------------------------------------------------------------
@@ -102,8 +89,16 @@ class PadSettings {
     "sample": sample,
     "caption": caption,
     "color": color.value,
-    "mode": _playModeToString(mode),
+    "textColor": textColor.value,
+    "looped": looped,
   };
+
+  //----------------------------------------------------------------------------
+
+  void save()
+  {
+    _settings.save();
+  }
 
   //----------------------------------------------------------------------------
 }
@@ -115,6 +110,7 @@ class Settings {
   //----------------------------------------------------------------------------
 
   String name;
+  File file;
 
   int x;
   int y;
@@ -132,7 +128,10 @@ class Settings {
     padSettings = []..length = x * y;
 
     for (int i = 0 ; i < x * y ; i++)
-      padSettings[i] = PadSettings(i);
+      padSettings[i] = PadSettings(this, i);
+
+    String path = documentDirectory.path;
+    file = File('$path/temp.json');
   }
 
   //----------------------------------------------------------------------------
@@ -140,6 +139,7 @@ class Settings {
   Settings.copy(Settings settings)
   {
     this.name = settings.name;
+    this.file = settings.file;
     this.x = settings.x;
     this.y = settings.y;
 
@@ -151,8 +151,10 @@ class Settings {
 
   //----------------------------------------------------------------------------
 
-  Settings.fromJson(String json)
+  Settings.fromJson(File file, String json)
   {
+    this.file = file;
+
     Map<String, dynamic> map = jsonDecode(json);
 
     name = map['name'];
@@ -164,7 +166,7 @@ class Settings {
     padSettings = []..length = x * y;
 
     for (int i = 0 ; i < x * y ; i++)
-      padSettings[i] = PadSettings.fromJson(padMap[i]);
+      padSettings[i] = PadSettings.fromJson(this, padMap[i]);
   }
 
   //----------------------------------------------------------------------------
@@ -186,12 +188,19 @@ class Settings {
 
   //----------------------------------------------------------------------------
 
+  void save()
+  {
+    file.writeAsString(getJson());
+  }
+
+  //----------------------------------------------------------------------------
+
   void validate()
   {
     if (x * y > padSettings.length)
     {
       for (int i = padSettings.length ; i < x * y ; i++)
-        padSettings.add(PadSettings(i));
+        padSettings.add(PadSettings(this, i));
     }
     else if (x * y < padSettings.length)
     {

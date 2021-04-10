@@ -4,10 +4,10 @@
 //    Copyright Cherry Tree Studio 2021
 //==============================================================================
 
-import 'dart:io';
-
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:opensampler/settings.dart';
 import 'package:path/path.dart';
 
@@ -53,8 +53,37 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
   {
     FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.audio);
 
-    if(result != null)
+    if (result != null)
       _settings.sample = result.files.single.path;
+
+    bool isNumber = double.parse(_settings.caption) != null;
+
+    if (_settings.caption.isEmpty || isNumber)
+    {
+      String str = basename(_settings.sample);
+      str = str.substring(0, str.lastIndexOf('.'));
+
+      _settings.caption = str;
+    }
+
+    _settings.save();
+
+    setState(() {});
+  }
+
+  //----------------------------------------------------------------------------
+
+  void _onChangeCaption(BuildContext context) async
+  {
+    TextEditingController controller = TextEditingController();
+    controller.text = _settings.caption;
+
+    var ok = await confirm(context, title: Text('Input pad name'), content: TextField(controller: controller));
+
+    if (ok)
+      _settings.caption = controller.text;
+
+    _settings.save();
 
     setState(() {});
   }
@@ -64,27 +93,23 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
   @override
   Widget build(BuildContext context) {
 
-    // TODO
-    // Choose sample
-    // Set color
-    // Set text.
-
     String sampleName = _settings.sample.isNotEmpty ? basename(_settings.sample) : "";
+    String caption = _settings.caption.isEmpty ? (sampleName.isNotEmpty ? sampleName.substring(0, sampleName.lastIndexOf('.')) : "") : _settings.caption;
+
+    int x = _padX + 1;
+    int y = _padY + 1;
 
     return Scaffold(
 
         appBar: AppBar(
-          title: Text("Settings"),
+          title: Text("Pad $x x $y"),
         ),
         body: Container(
-            margin: const EdgeInsets.all(20.0),
+            margin: const EdgeInsets.all(10),
             child: Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
                   // <Widget> is the type of items in the list.
                   children: <Widget>[
-                    Spacer(),
                     Text("Sound Clip:"),
                     Row(
                       children: <Widget>[
@@ -93,15 +118,50 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
                         TextButton(onPressed: _onSelectSample, child: Text("Select"))
                       ],
                     ),
-                    Text("Color:"),
+                    Divider(),
                     Text("Caption:"),
-                    Text("Play Mode:"),
-                    Spacer(),
+                    Row(
+                      children: <Widget>[
+                        Text(caption),
+                        Spacer(),
+                        TextButton(onPressed: () {_onChangeCaption(context); }, child: Text("Set"))
+                      ],
+                    ),
+                    Divider(),
+                    Row(
+                      children: <Widget>[
+                        Text("Looped"),
+                        Spacer(),
+                        Switch(value: _settings.looped, onChanged: (value){ _settings.looped = value; _settings.save(); setState(() {});})
+                      ],
+                    ),
+                    Divider(),
+                    Text("Pad Color:"),
+                    SizedBox(height: 10),
+                    SlidePicker(
+                      pickerColor: _settings.color,
+                      onColorChanged: (Color color) { _settings.color = color; _settings.save(); },
+                      paletteType: PaletteType.rgb,
+                      enableAlpha: false,
+                      displayThumbColor: true,
+                      showLabel: false,
+                      ),
+                    Divider(),
+                    Text("Pad Text Color:"),
+                    SizedBox(height: 10),
+                    SlidePicker(
+                      pickerColor: _settings.textColor,
+                      onColorChanged: (Color color) { _settings.textColor = color; _settings.save(); },
+                      paletteType: PaletteType.rgb,
+                      enableAlpha: false,
+                      displayThumbColor: true,
+                      showLabel: false,
+                    ),
                   ]),
             )));
   }
 
-  //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 }
 
 //==============================================================================
