@@ -7,6 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'main.dart';
+
 //==============================================================================
 
 class AboutScreen extends StatelessWidget {
@@ -25,8 +27,10 @@ class AboutScreen extends StatelessWidget {
         child: Center(
           child: ListView(
               children: <Widget>[
-                Text("Open Sampler", style: TextStyle(fontSize: 24)),
+                Text("Open Sampler v" + packageInfo.version, style: TextStyle(fontSize: 24)),
                 Divider(),
+                Text("Simple Sampling / Sound Board app for Android"),
+                SizedBox(height: 10),
                 Text("Developed by Leszek \"Лешы\" Szczepański"),
                 SizedBox(height: 10),
                 Text("Released under EUPL 1.2"),

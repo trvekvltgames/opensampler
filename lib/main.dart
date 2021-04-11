@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info/package_info.dart';
 
 import 'padscreen.dart';
 import 'settings.dart';
@@ -20,6 +21,9 @@ SharedPreferences preferences;
 
 // The directory for that we will be saving to.
 Directory documentDirectory;
+
+// Information about the app package.
+PackageInfo packageInfo;
 
 // Key used in preferences to store/retrieve path of the last used project.
 const String lastFileKey = "lastProject";
@@ -36,6 +40,7 @@ Future<void> main() async
 
   preferences = await SharedPreferences.getInstance();
   documentDirectory = await getApplicationDocumentsDirectory();
+  packageInfo = await PackageInfo.fromPlatform();
 
   var settings = await loadSettings();
 
