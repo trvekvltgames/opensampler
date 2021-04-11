@@ -110,7 +110,7 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
               child: ListView(
                   // <Widget> is the type of items in the list.
                   children: <Widget>[
-                    Text("Sound Clip:"),
+                    Text("Sound Clip:", style: TextStyle(fontSize: 16)),
                     Row(
                       children: <Widget>[
                         Text(sampleName),
@@ -119,7 +119,7 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
                       ],
                     ),
                     Divider(),
-                    Text("Caption:"),
+                    Text("Caption:", style: TextStyle(fontSize: 16)),
                     Row(
                       children: <Widget>[
                         Text(caption),
@@ -130,13 +130,13 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
                     Divider(),
                     Row(
                       children: <Widget>[
-                        Text("Looped"),
+                        Text("Looped", style: TextStyle(fontSize: 16)),
                         Spacer(),
                         Switch(value: _settings.looped, onChanged: (value){ _settings.looped = value; _settings.save(); setState(() {});})
                       ],
                     ),
                     Divider(),
-                    Text("Pad Color:"),
+                    Text("Pad Color:", style: TextStyle(fontSize: 16)),
                     SizedBox(height: 10),
                     SlidePicker(
                       pickerColor: _settings.color,
@@ -147,7 +147,7 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
                       showLabel: false,
                       ),
                     Divider(),
-                    Text("Pad Text Color:"),
+                    Text("Pad Text Color:", style: TextStyle(fontSize: 16)),
                     SizedBox(height: 10),
                     SlidePicker(
                       pickerColor: _settings.textColor,

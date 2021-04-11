@@ -10,6 +10,8 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 
+import 'aboutscreen.dart';
+import 'helpscreen.dart';
 import 'load.dart';
 import 'main.dart';
 import 'settingsscreen.dart';
@@ -18,7 +20,7 @@ import 'settings.dart';
 
 //==============================================================================
 
-enum PopupState { NewProject, SaveProject, OpenProject, Settings }
+enum PopupState { NewProject, SaveProject, OpenProject, Settings, Help, About }
 
 //==============================================================================
 
@@ -186,6 +188,20 @@ class _PadScreenState extends State<PadScreen> {
 
   //----------------------------------------------------------------------------
 
+  void _goToHelp(BuildContext context) async
+  {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => HelpScreen()));
+  }
+
+  //----------------------------------------------------------------------------
+
+  void _goToAbout(BuildContext context) async
+  {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => AboutScreen()));
+  }
+
+  //----------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context)
   {
@@ -207,12 +223,17 @@ class _PadScreenState extends State<PadScreen> {
         title: Text(_settings.name),
         actions: [
           PopupMenuButton<PopupState>(
-              itemBuilder: (BuildContext context) => <PopupMenuItem<PopupState>>[
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<PopupState>>[
                 new PopupMenuItem<PopupState>(value: PopupState.NewProject, child: new Text('New Project')),
                 new PopupMenuItem<PopupState>(value: PopupState.SaveProject, child: new Text('Save Project')),
                 new PopupMenuItem<PopupState>(value: PopupState.OpenProject, child: new Text('Open Project')),
                 new PopupMenuItem<PopupState>(value: PopupState.Settings, child: new Text('Settings')),
+                new PopupMenuDivider(),
+                new PopupMenuItem<PopupState>(value: PopupState.Help, child: new Text('Help')),
+                new PopupMenuItem<PopupState>(value: PopupState.About, child: new Text('About')),
               ],
+
+              // TODO Add credits/about and help.
 
               onSelected: (PopupState state) {
                 switch(state)
@@ -231,6 +252,14 @@ class _PadScreenState extends State<PadScreen> {
 
                   case PopupState.Settings:
                     _goToSettings(context);
+                    break;
+
+                  case PopupState.Help:
+                    _goToHelp(context);
+                    break;
+
+                  case PopupState.About:
+                    _goToAbout(context);
                     break;
                 }
               })
