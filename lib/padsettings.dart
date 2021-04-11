@@ -8,8 +8,9 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:opensampler/settings.dart';
 import 'package:path/path.dart';
+
+import 'settings.dart';
 
 //==============================================================================
 
@@ -61,7 +62,9 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
     if (_settings.caption.isEmpty || isNumber)
     {
       String str = basename(_settings.sample);
-      str = str.substring(0, str.lastIndexOf('.'));
+
+      if (str.lastIndexOf('.') >= 0)
+        str = str.substring(0, str.lastIndexOf('.'));
 
       _settings.caption = str;
     }
@@ -94,7 +97,12 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
   Widget build(BuildContext context) {
 
     String sampleName = _settings.sample.isNotEmpty ? basename(_settings.sample) : "";
-    String caption = _settings.caption.isEmpty ? (sampleName.isNotEmpty ? sampleName.substring(0, sampleName.lastIndexOf('.')) : "") : _settings.caption;
+    String sampleBasename = sampleName;
+
+    if (sampleBasename.isNotEmpty && sampleName.lastIndexOf('.') >= 0)
+      sampleBasename = sampleName.substring(0, sampleName.lastIndexOf('.'));
+
+    String caption = _settings.caption.isEmpty ? sampleBasename : _settings.caption;
 
     int x = _padX + 1;
     int y = _padY + 1;
@@ -130,11 +138,29 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
                     Divider(),
                     Row(
                       children: <Widget>[
-                        Text("Looped", style: TextStyle(fontSize: 16)),
+                        Text("Looped:", style: TextStyle(fontSize: 16)),
                         Spacer(),
                         Switch(value: _settings.looped, onChanged: (value){ _settings.looped = value; _settings.save(); setState(() {});})
                       ],
                     ),
+                    Divider(),
+                    Row(
+                      children: <Widget>[
+                        Text("Long sound:", style: TextStyle(fontSize: 16)),
+                        Spacer(),
+                        Switch(value: _settings.long, onChanged: (value){ _settings.long = value; _settings.save(); setState(() {});})
+                      ],
+                    ),
+                    Divider(),
+                    _buildPlayBehaviourCombo(context),
+                    Divider(),
+                    Text("Pad Volume:", style: TextStyle(fontSize: 16)),
+                    Slider(
+                      value: _settings.volume * 100.0,
+                      min: 0,
+                      max: 100,
+                      label: (_settings.volume * 100.0).round().toString(),
+                      onChanged: (double value) { _settings.volume = value / 100.0; setState(() {});}),
                     Divider(),
                     Text("Pad Color:", style: TextStyle(fontSize: 16)),
                     SizedBox(height: 10),
@@ -161,7 +187,36 @@ class _PadSettingsScreenState extends State<PadSettingsScreen> {
             )));
   }
 
-//----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+
+  Row _buildPlayBehaviourCombo(BuildContext context)
+  {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text('Pad Behaviour:', style: TextStyle(fontSize: 16)),
+        Spacer(),
+        DropdownButton<PressBehaviour>(
+          value: _settings.behaviour,
+          onChanged: (PressBehaviour newValue) {
+            setState(() {
+              _settings.behaviour = newValue;
+              _settings.save();
+            });
+          },
+          items: PressBehaviour.values.map<DropdownMenuItem<PressBehaviour>>((PressBehaviour value) {
+            return DropdownMenuItem<PressBehaviour>(
+              value: value,
+              child: Text(pressBehaviourToString(value)),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  //----------------------------------------------------------------------------
+
 }
 
 //==============================================================================

@@ -26,19 +26,28 @@ class AboutScreen extends StatelessWidget {
           child: ListView(
               children: <Widget>[
                 Text("Open Sampler", style: TextStyle(fontSize: 24)),
-                SizedBox(height: 10),
-                Text("Developed by Leszek Szczepański"),
+                Divider(),
+                Text("Developed by Leszek \"Лешы\" Szczepański"),
                 SizedBox(height: 10),
                 Text("Released under EUPL 1.2"),
                 SizedBox(height: 10),
+                Text("Source", style: TextStyle(fontSize: 18)),
+                Divider(),
                 new InkWell(
-                    child: new Text('Source @ GitHub', style: TextStyle(color: Colors.blueGrey)),
+                    child: new Text('Open Sampler @ GitHub', style: TextStyle(color: Colors.blueGrey)),
                     onTap: () => launch('https://github.com/trvekvltgames/opensampler')
                 ),
                 SizedBox(height: 10),
+                Text("Contact", style: TextStyle(fontSize: 18)),
+                Divider(),
                 new InkWell(
                     child: new Text('Twitter', style: TextStyle(color: Colors.blueGrey)),
                     onTap: () => launch('https://twitter.com/yezu')
+                ),
+                SizedBox(height: 10),
+                new InkWell(
+                    child: new Text('Mail', style: TextStyle(color: Colors.blueGrey)),
+                    onTap: () => launch('mailto:leshy@trvekvlt.eu')
                 ),
               ]
           )

@@ -5,11 +5,53 @@
 //==============================================================================
 
 import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import 'main.dart';
+
+//==============================================================================
+
+enum PressBehaviour { Stop, Pause, Restart }
+
+//------------------------------------------------------------------------------
+
+String pressBehaviourToString(PressBehaviour mode)
+{
+  switch (mode)
+  {
+    case PressBehaviour.Stop:
+      return "Stop";
+
+    case PressBehaviour.Pause:
+      return "Pause";
+
+    case PressBehaviour.Restart:
+      return "Restart";
+  }
+
+  return null;
+}
+
+//------------------------------------------------------------------------------
+
+PressBehaviour pressBehaviourFromString(String string)
+{
+  switch (string)
+  {
+    case "Stop":
+      return PressBehaviour.Stop;
+
+    case "Pause":
+      return PressBehaviour.Pause;
+
+    case "Restart":
+      return PressBehaviour.Restart;
+  }
+
+  return PressBehaviour.Restart;
+}
 
 //==============================================================================
 
@@ -22,6 +64,11 @@ class PadSettings {
   Color color;
   Color textColor;
   bool looped;
+  bool long;
+
+  PressBehaviour behaviour;
+
+  double volume;
 
   Settings _settings;
 
@@ -39,10 +86,15 @@ class PadSettings {
     color = Colors.grey;
     color = color.withOpacity(1.0);
 
+    volume = 1.0;
+
     textColor = Colors.black;
     textColor = textColor.withOpacity(1.0);
 
+    behaviour = PressBehaviour.Restart;
+
     looped = false;
+    long = false;
   }
 
   //----------------------------------------------------------------------------
@@ -61,6 +113,10 @@ class PadSettings {
     this.textColor = this.textColor.withOpacity(1.0);
 
     this.looped = settings.looped;
+    this.volume = settings.volume;
+    this.long = settings.long;
+
+    this.behaviour = settings.behaviour;
   }
 
   //----------------------------------------------------------------------------
@@ -79,7 +135,11 @@ class PadSettings {
     textColor = textColorVal != null ? Color(textColorVal) : Colors.black;
     textColor = textColor.withOpacity(1.0);
 
+    long = map["long"];
     looped = map["looped"];
+    volume = map["volume"];
+
+    behaviour = pressBehaviourFromString(map["behaviour"]);
   }
 
   //----------------------------------------------------------------------------
@@ -91,6 +151,9 @@ class PadSettings {
     "color": color.value,
     "textColor": textColor.value,
     "looped": looped,
+    "volume": volume,
+    "long": long,
+    "behaviour": pressBehaviourToString(behaviour)
   };
 
   //----------------------------------------------------------------------------

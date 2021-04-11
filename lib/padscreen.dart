@@ -17,6 +17,7 @@ import 'main.dart';
 import 'settingsscreen.dart';
 import 'padsettings.dart';
 import 'settings.dart';
+import 'sampleplayer.dart';
 
 //==============================================================================
 
@@ -29,6 +30,7 @@ class PadScreen extends StatefulWidget {
   //----------------------------------------------------------------------------
 
   final Settings _settings;
+  final SamplePlayer _player = SamplePlayer();
 
   //----------------------------------------------------------------------------
 
@@ -37,7 +39,7 @@ class PadScreen extends StatefulWidget {
   //----------------------------------------------------------------------------
 
   @override
-  _PadScreenState createState() => _PadScreenState(_settings);
+  _PadScreenState createState() => _PadScreenState(_settings, _player);
 
   //----------------------------------------------------------------------------
 }
@@ -49,20 +51,23 @@ class _PadScreenState extends State<PadScreen> {
   //----------------------------------------------------------------------------
 
   Settings _settings;
+  SamplePlayer _player;
 
   //----------------------------------------------------------------------------
 
-  _PadScreenState(Settings settings)
+  _PadScreenState(Settings settings, SamplePlayer player)
   {
     this._settings = Settings.copy(settings);
+    this._player = player;
+
+    _player.init(_settings);
   }
 
   //----------------------------------------------------------------------------
 
-  void _press()
+  void _press(int idx)
   {
-    // TODO
-    // Play sample
+    _player.play(idx);
   }
 
   //----------------------------------------------------------------------------
@@ -75,6 +80,9 @@ class _PadScreenState extends State<PadScreen> {
     await Navigator.push(context, MaterialPageRoute(builder: (context) => PadSettingsScreen(padX, padY, _settings.padSettings[padIdx])));
 
     _settings.validate();
+
+    _player.init(_settings);
+    _settings.save();
 
     setState(() {});
   }
@@ -102,7 +110,7 @@ class _PadScreenState extends State<PadScreen> {
         buttonTextStyle = TextStyle(color: _settings.padSettings[i].textColor);
 
       list.add(MaterialButton(
-          onPressed: _press,
+          onPressed: () {_press(i); },
           onLongPress: () {
             _longPress(context, i, _settings.padSettings[i]);
           },
@@ -125,6 +133,8 @@ class _PadScreenState extends State<PadScreen> {
       _settings = Settings.copy(defaultSettings);
       _settings.save();
 
+      _player.init(_settings);
+
       preferences.setString(lastFileKey, _settings.file.absolute.path);
     }
 
@@ -138,6 +148,9 @@ class _PadScreenState extends State<PadScreen> {
     await Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsScreen(_settings)));
 
     _settings.validate();
+    _settings.save();
+
+    _player.init(_settings);
 
     setState(() {});
   }
@@ -161,6 +174,8 @@ class _PadScreenState extends State<PadScreen> {
       _settings.file = newFile;
       _settings.save();
 
+      _player.init(_settings);
+
       preferences.setString(lastFileKey, newFile.absolute.path);
     }
   }
@@ -182,6 +197,8 @@ class _PadScreenState extends State<PadScreen> {
       String json = await settingsFile.readAsString();
       _settings = new Settings.fromJson(settingsFile, json);
     }
+
+    _player.init(_settings);
 
     setState(() {});
   }
@@ -222,6 +239,9 @@ class _PadScreenState extends State<PadScreen> {
       appBar: AppBar(
         title: Text(_settings.name),
         actions: [
+          IconButton(
+              icon: const Icon(Icons.volume_off_rounded),
+              onPressed: () { _player.stop(); }),
           PopupMenuButton<PopupState>(
               itemBuilder: (BuildContext context) => <PopupMenuEntry<PopupState>>[
                 new PopupMenuItem<PopupState>(value: PopupState.NewProject, child: new Text('New Project')),

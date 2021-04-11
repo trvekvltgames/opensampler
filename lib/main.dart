@@ -4,11 +4,11 @@
 //    Copyright Cherry Tree Studio 2021
 //==============================================================================
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:io';
 
 import 'padscreen.dart';
 import 'settings.dart';
@@ -18,6 +18,7 @@ import 'settings.dart';
 // Global preferences object.
 SharedPreferences preferences;
 
+// The directory for that we will be saving to.
 Directory documentDirectory;
 
 // Key used in preferences to store/retrieve path of the last used project.
